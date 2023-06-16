@@ -1,8 +1,8 @@
-const express = require('express')
-const app = express()
+import express, { Express, Request, Response } from 'express'
+const app: Express = express()
 const port = 3000
 
-const request = async (res: any, query: Function) => {
+const request = async (res: Response, query: Function) => {
   try {
     const result = await query() // Example Gremlin query
     res.json(result)
