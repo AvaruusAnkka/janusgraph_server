@@ -6,6 +6,5 @@ export const fakePerson = () => {
   const modifiedAt = faker.date.recent()
   const info = faker.person.jobDescriptor()
 
-  // return new Person(name, name, createdAt, modifiedAt, info)
   return { name, group: name, createdAt, modifiedAt, info }
 }

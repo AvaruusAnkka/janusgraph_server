@@ -9,18 +9,13 @@ const connection = new DriverRemoteConnection('ws://localhost:8182/gremlin', {
 
 const g = traversal().withRemote(connection)
 
-export default class Gremlin {
-  // Get all vertices with their edges.
-  static getAll = () => g.V().bothE().toList()
+export default class GremlinQueries {
+  static check = (userId: number) => g.V(userId).hasNext()
 
-  // Get all persons or a specific person by id if provided.
-  static get = (userId?: number) => {
-    if (userId) {
-      return g.V(userId).elementMap().toList()
-    } else return g.V().elementMap().toList()
-  }
+  static getById = (userId: number) => g.V(userId).elementMap().next()
 
-  // Add a person to the graph.
+  static getAll = () => g.V().elementMap().toList()
+
   static add = (vertex: any) =>
     g
       .addV(vertex.label)
@@ -29,9 +24,8 @@ export default class Gremlin {
       .property('createdAt', vertex.createdAt)
       .property('modifiedAt', vertex.modifiedAt)
       .property('info', vertex.info)
-      .toList()
+      .next()
 
-  // Update a person by id.
   static update = (userId: number, vertex: any) =>
     g
       .V(userId)
@@ -39,21 +33,30 @@ export default class Gremlin {
       .property('group', vertex.group)
       .property('modifiedAt', new Date().toISOString())
       .property('info', vertex.info)
-      .toList()
+      .next()
 
-  // Delete a person by id or all persons if id is not provided.
-  static delete = (userId?: number) => {
-    if (userId) return g.V(userId).drop().toList()
-    else return g.V().drop().toList()
-  }
+  static deleteById = (userId: number) => g.V(userId).drop().next()
 
-  // Get all persons or a specific person by id if provided.
-  static getE = (userId?: number) => {
+  static deleteAll = () => g.V().drop().next()
+
+  static getEdges = (userId?: number) => {
     if (userId) {
-      return g.V(userId).both()
-    } else return g.E()
+      return g.V(userId).bothE().toList()
+    } else return g.E().toList()
   }
 
-  static addE = (from: number, to: number) =>
-    g.V(from).as('from').V(to).as('to').addE('knows').from_('from').to('to')
+  static addEdge = (from: number, to: number) =>
+    g
+      .V(from)
+      .as('from')
+      .V(to)
+      .as('to')
+      .addE('knows')
+      .from_('from')
+      .to('to')
+      .next()
+
+  static deleteEdge = (userId?: number) => g.V(userId).bothE().drop().next()
+
+  static deleteAllEdges = () => g.E().drop().next()
 }

@@ -1,4 +1,4 @@
-import Vertex from './vertex'
+import Vertex from './vertexModel'
 export default class Person extends Vertex {
   label: string = 'person'
   group: string
