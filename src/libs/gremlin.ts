@@ -3,20 +3,24 @@ import gremlin from 'gremlin'
 const traversal = gremlin.process.AnonymousTraversalSource.traversal
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 
-const connection = new DriverRemoteConnection('ws://localhost:8182/gremlin', {
-  mimeType: 'application/vnd.gremlin-v2.0+json',
-})
+const connection = new DriverRemoteConnection(
+  // 'ws://server.nome.fi:8182/gremlin'
+  'ws://localhost:8182/gremlin',
+  {
+    mimeType: 'application/vnd.gremlin-v2.0+json',
+  }
+)
 
 const g = traversal().withRemote(connection)
 
 export default class GremlinQueries {
-  static check = (userId: number) => g.V(userId).hasNext()
+  static checkVertexById = (vertexId: number) => g.V(vertexId).hasNext()
 
-  static getById = (userId: number) => g.V(userId).elementMap().next()
+  static getVertexById = (vertexId: number) => g.V(vertexId).elementMap().next()
 
-  static getAll = () => g.V().elementMap().toList()
+  static getAllVertices = () => g.V().elementMap().toList()
 
-  static add = (vertex: any) =>
+  static addVertex = (vertex: any) =>
     g
       .addV(vertex.label)
       .property('name', vertex.name)
@@ -26,37 +30,27 @@ export default class GremlinQueries {
       .property('info', vertex.info)
       .next()
 
-  static update = (userId: number, vertex: any) =>
+  static updateVertex = (vertexId: number, properties: any) =>
     g
-      .V(userId)
-      .property('name', vertex.name)
-      .property('group', vertex.group)
+      .V(vertexId)
+      .property('name', properties.name)
+      .property('group', properties.group)
       .property('modifiedAt', new Date().toISOString())
-      .property('info', vertex.info)
+      .property('info', properties.info)
       .next()
 
-  static deleteById = (userId: number) => g.V(userId).drop().next()
+  static deleteVertexById = (vertexId: number) => g.V(vertexId).drop().next()
 
-  static deleteAll = () => g.V().drop().next()
+  static deleteAllVertices = () => g.V().drop().next()
 
-  static getEdges = (userId?: number) => {
-    if (userId) {
-      return g.V(userId).bothE().toList()
-    } else return g.E().toList()
-  }
+  static getEdgeById = (vertexId: number) => g.V(vertexId).bothE().toList()
+
+  static getAllEdges = () => g.E().elementMap().toList()
 
   static addEdge = (from: number, to: number) =>
-    g
-      .V(from)
-      .as('from')
-      .V(to)
-      .as('to')
-      .addE('knows')
-      .from_('from')
-      .to('to')
-      .next()
+    g.V(from).as('from').V(to).addE('knows').from_('from').next()
 
-  static deleteEdge = (userId?: number) => g.V(userId).bothE().drop().next()
+  static deleteEdge = (vertexId: number) => g.V(vertexId).bothE().drop().next()
 
   static deleteAllEdges = () => g.E().drop().next()
 }

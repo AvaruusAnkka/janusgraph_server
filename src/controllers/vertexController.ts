@@ -1,35 +1,35 @@
 import GremlinQueries from '../libs/gremlin'
 
 export default class VertexController {
-  static check = (userId: number) => GremlinQueries.check(userId)
+  static check = (vertexId: number) => GremlinQueries.checkVertexById(vertexId)
 
-  static getVertex = (userId?: number) => {
-    if (userId) {
-      return GremlinQueries.getById(userId)
-    } else return GremlinQueries.getAll()
+  static getVertex = (vertexId?: number) => {
+    if (vertexId) {
+      return GremlinQueries.getVertexById(vertexId)
+    } else return GremlinQueries.getAllVertices()
   }
 
-  static addVertex = (vertex: any) => GremlinQueries.add(vertex)
+  static addVertex = (vertex: any) => GremlinQueries.addVertex(vertex)
 
-  static updateVertex = (userId: number, vertex: any) =>
-    GremlinQueries.update(userId, vertex)
+  static updateVertex = (vertexId: number, vertex: any) =>
+    GremlinQueries.updateVertex(vertexId, vertex)
 
-  static deleteVertex = (userId?: number): any => {
-    if (userId) return GremlinQueries.deleteById(userId)
-    else return GremlinQueries.deleteAll()
+  static deleteVertex = (vertexId?: number): any => {
+    if (vertexId) return GremlinQueries.deleteVertexById(vertexId)
+    else return GremlinQueries.deleteAllVertices()
   }
 
-  static getEdge = (userId?: number) => {
-    if (userId) {
-      return GremlinQueries.getEdges(userId)
-    } else return GremlinQueries.getEdges()
+  static getEdge = (vertexId?: number) => {
+    if (vertexId) {
+      return GremlinQueries.getEdgeById(vertexId)
+    } else return GremlinQueries.getAllEdges()
   }
 
   static addEdge = (from: number, to: number) =>
     GremlinQueries.addEdge(from, to)
 
-  static deleteEdge = (userId?: number) => {
-    if (userId) return GremlinQueries.deleteEdge(userId)
+  static deleteEdge = (vertexId?: number) => {
+    if (vertexId) return GremlinQueries.deleteEdge(vertexId)
     else return GremlinQueries.deleteAllEdges()
   }
 }
