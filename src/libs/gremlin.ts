@@ -13,6 +13,7 @@ const connection = new DriverRemoteConnection(
 )
 
 const g = traversal().withRemote(connection)
+const client = new gremlin.driver.Client('ws://server.nome.fi:8182/gremlin')
 
 export default class GremlinQueries {
   static checkVertexExists = async (vertexId: number) => g.V(vertexId).hasNext()
@@ -21,9 +22,8 @@ export default class GremlinQueries {
 
   static getAllVertices = () => g.V().elementMap().toList()
 
-  static gremlinQuery = () => {
-    const query: Function = Function(`g.V().elementMap().toList()`)
-    query()
+  static gremlinQuery = (query: string) => {
+    return client.submit(query).then((result) => result)
   }
 
   static addVertex = (vertex: Vertex) =>

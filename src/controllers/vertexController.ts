@@ -85,7 +85,9 @@ export default class VertexController {
           newProperties[key] = String(headers[key])
         }
         console.log(newProperties)
-        console.log(await GremlinQueries.gremlinQuery())
+        console.log(
+          await GremlinQueries.gremlinQuery(`g.V(${Number(headers.id)}))`)
+        )
         //     const person = new Person(
         //       await VertexController.getVertex(Number(req.headers.id))
         //     )
