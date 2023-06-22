@@ -1,33 +1,40 @@
 import gremlin from 'gremlin'
+import Vertex from '../models/vertexModel'
 
 const traversal = gremlin.process.AnonymousTraversalSource.traversal
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 
 const connection = new DriverRemoteConnection(
-  // 'ws://server.nome.fi:8182/gremlin'
-  'ws://localhost:8182/gremlin',
-  {
-    mimeType: 'application/vnd.gremlin-v2.0+json',
-  }
+  'ws://server.nome.fi:8182/gremlin'
+  // 'ws://localhost:8182/gremlin',
+  // {
+  //   mimeType: 'application/vnd.gremlin-v2.0+json',
+  // }
 )
 
 const g = traversal().withRemote(connection)
 
 export default class GremlinQueries {
-  static checkVertexById = (vertexId: number) => g.V(vertexId).hasNext()
+  static checkVertexExists = async (vertexId: number) => g.V(vertexId).hasNext()
 
   static getVertexById = (vertexId: number) => g.V(vertexId).elementMap().next()
 
   static getAllVertices = () => g.V().elementMap().toList()
 
-  static addVertex = (vertex: any) =>
+  static gremlinQuery = () => {
+    const query: Function = Function(`g.V().elementMap().toList()`)
+    query()
+  }
+
+  static addVertex = (vertex: Vertex) =>
     g
       .addV(vertex.label)
       .property('name', vertex.name)
+      .property('owner', vertex.owner)
       .property('group', vertex.group)
+      .property('info', vertex.info)
       .property('createdAt', vertex.createdAt)
       .property('modifiedAt', vertex.modifiedAt)
-      .property('info', vertex.info)
       .next()
 
   static updateVertex = (vertexId: number, properties: any) =>
