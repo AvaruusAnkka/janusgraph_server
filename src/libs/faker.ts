@@ -1,11 +1,16 @@
 import { faker } from '@faker-js/faker'
 
 export const fakePerson = () => {
-  const label = 'person'
   const name = faker.person.firstName()
-  const createdAt = faker.date.past()
-  const modifiedAt = faker.date.recent()
-  const info = faker.person.jobDescriptor()
 
-  return { label, name, owner: name, group: name, createdAt, modifiedAt, info }
+  return {
+    label: 'person',
+    name: name,
+    owner: name,
+    group: name,
+    uuid: faker.string.uuid(),
+    createdAt: faker.date.past(),
+    modifiedAt: faker.date.recent(),
+    info: faker.person.jobDescriptor(),
+  }
 }

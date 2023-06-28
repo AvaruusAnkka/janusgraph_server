@@ -17,7 +17,7 @@ const request = async (res: Response, query: Function) => {
 app
   .route('/vertex')
   .get(async (req: Request, res: Response) => {
-    VertexController.getVertex(res, req.headers.id)
+    VertexController.getVertex(res, req.headers.id, req.headers.label)
   })
   .post((req: Request, res: Response) => {
     VertexController.addVertex(res, req.headers)
@@ -91,7 +91,12 @@ app
   })
 
 app.post('/faker', (req: Request, res: Response) => {
-  VertexController.addFake(res)
+  // VertexController.addFake(res)
+  VertexController.createFake(res)
+})
+
+app.delete('/withoutEdge', (req: Request, res: Response) => {
+  VertexController.deleteWithoutEdge(res)
 })
 
 app.listen(port, () => {
