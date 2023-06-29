@@ -1,5 +1,4 @@
 import gremlin from 'gremlin'
-import Vertex from '../models/vertexModel'
 
 const traversal = gremlin.process.AnonymousTraversalSource.traversal
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
@@ -21,28 +20,7 @@ export default class GremlinQueries {
 
   static getAllVertices = () => g.V().elementMap().toList()
 
-  static addVertexByQuery = (vertex: { [key: string]: string | Date }) => {
-    const keys = Object.keys(vertex).filter((key) => key !== 'label')
-    const addQuery: string = keys
-      .map((key) => {
-        let keyValue: string | number
-        if (vertex[key] instanceof Date)
-          keyValue = (vertex as { [key: string]: Date })[key].getTime()
-        else keyValue = (vertex as { [key: string]: string })[key]
-        return `.property('${key}', '${keyValue}')`
-      })
-      .join('')
-    const query = `g.addV('${vertex.label}')${addQuery}.addE('knows').from(V().has('name', 'Andy')).next()`
-    console.log(query)
-
-    return client.submit(query)
-  }
-
-  static gremlinQuery = (query: string) => {
-    return client.submit(query)
-  }
-
-  static addVertex = (vertex: Vertex) =>
+  static addVertex = (vertex: { [key: string]: string }) =>
     g
       .addV(vertex.label)
       .property('name', vertex.name)
@@ -66,9 +44,6 @@ export default class GremlinQueries {
 
   static deleteAllVertices = () => g.V().drop().next()
 
-  static deleteAllVerticesWithNoEdges = () =>
-    this.gremlinQuery('g.V().not(bothE()).drop()')
-
   static getEdgeById = (vertexId: number) => g.V(vertexId).bothE().toList()
 
   static getAllEdges = () => g.E().elementMap().toList()
@@ -79,4 +54,33 @@ export default class GremlinQueries {
   static deleteEdge = (vertexId: number) => g.V(vertexId).bothE().drop().next()
 
   static deleteAllEdges = () => g.E().drop().next()
+}
+
+export class QueryCalss {
+  static gremlinQuery = (query: string) => client.submit(query)
+
+  static getAllLinks = (id: number) => {
+    const query = `g.V(${id}).emit().repeat(out('knows')).until(out().count().is(0)).elementMap()`
+    return client.submit(query)
+  }
+
+  static addVertexByQuery = (
+    vertex: { [key: string]: string },
+    id?: number
+  ) => {
+    const keys = Object.keys(vertex).filter((key) => key !== 'label')
+    const addQuery: string = keys
+      .map((key) => `property('${key}', '${vertex[key]}')`)
+      .join('')
+
+    let destination = `V().has('name', 'Andy')`
+    if (id) destination = `V(${id})`
+
+    const query = `g.addV('${vertex.label}')${addQuery}.addE('knows').from(${destination}).next()`
+
+    return client.submit(query)
+  }
+
+  static deleteAllVerticesWithNoEdges = () =>
+    client.submit('g.V().not(bothE()).drop()')
 }

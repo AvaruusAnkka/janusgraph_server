@@ -1,5 +1,6 @@
 import express, { Express, Request, Response } from 'express'
 import VertexController from './controllers/vertexController'
+import EdgeController from './controllers/edgeController'
 
 const app: Express = express()
 const port = 3000
@@ -44,16 +45,20 @@ app
     } else request(res, () => VertexController.deleteVertex())
   })
 
+app.get('/vertex/links', async (req: Request, res: Response) => {
+  VertexController.getLinks(res, req.headers.id)
+})
+
 app
   .route('/edge')
   .get(async (req: Request, res: Response) => {
     if (req.headers.id && Number(req.headers.id)) {
-      const vertex = await VertexController.getEdge(Number(req.headers.id))
+      const vertex = await EdgeController.getEdge(Number(req.headers.id))
       if (vertex)
-        request(res, () => VertexController.getEdge(Number(req.headers.id)))
+        request(res, () => EdgeController.getEdge(Number(req.headers.id)))
       else res.status(400).json({ error: 'Invalid id.' })
     } else {
-      const response: any = await VertexController.getEdge()
+      const response: any = await EdgeController.getEdge()
       try {
         const asObject = response.map((val: any) => Object.fromEntries(val))
         request(res, () => asObject)
@@ -63,19 +68,14 @@ app
     }
   })
   .post(async (req: Request, res: Response) => {
-    // if (
-    //   req.headers.from &&
-    //   Number(req.headers.from) &&
-    //   req.headers.to &&
-    //   Number(req.headers.to)
-    // ) {
+    // if (Number(req.headers.from) && Number(req.headers.to)) {
     //   Promise.all([
-    //     VertexController.check(Number(req.headers.from)),
-    //     VertexController.check(Number(req.headers.to)),
+    //     VertexController.getVertex(res, req.headers.from),
+    //     VertexController.getVertex(res, req.headers.to),
     //   ]).then((vertices) => {
     //     if (vertices[0] && vertices[1])
     //       request(res, () =>
-    //         VertexController.addEdge(
+    //         EdgeController.addEdge(
     //           Number(req.headers.from),
     //           Number(req.headers.to)
     //         )
@@ -86,13 +86,12 @@ app
   })
   .delete(async (req: Request, res: Response) => {
     if (req.headers.id && Number(req.headers.id)) {
-      request(res, () => VertexController.deleteEdge(Number(req.headers.id)))
-    } else request(res, () => VertexController.deleteEdge())
+      request(res, () => EdgeController.deleteEdge(Number(req.headers.id)))
+    } else request(res, () => EdgeController.deleteEdge())
   })
 
 app.post('/faker', (req: Request, res: Response) => {
-  // VertexController.addFake(res)
-  VertexController.createFake(res)
+  VertexController.createFake(res, req.headers.id)
 })
 
 app.delete('/withoutEdge', (req: Request, res: Response) => {

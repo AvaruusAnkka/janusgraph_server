@@ -6,11 +6,10 @@ export const fakePerson = () => {
   return {
     label: 'person',
     name: name,
-    owner: name,
-    group: name,
     uuid: faker.string.uuid(),
-    createdAt: faker.date.past(),
-    modifiedAt: faker.date.recent(),
-    info: faker.person.jobDescriptor(),
+    owner: name,
+    group: 'andy',
+    createDate: String(faker.date.past().getTime()),
+    modifyDate: String(faker.date.recent().getTime()),
   }
 }
