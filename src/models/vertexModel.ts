@@ -1,19 +1,21 @@
 export default class Vertex {
   label: string
   name: string
-  owner: string
-  group: string
-  readonly createdAt: Date
-  modifiedAt: Date
-  info: string
+  uuid: string
+  createDate: Date
+  modifyDate: Date
 
-  constructor({ label, name, owner, group, createdAt, modifiedAt, info }: any) {
+  constructor(
+    label: string,
+    name: string,
+    uuid: string,
+    createDate: Date,
+    modifyDate: Date
+  ) {
     this.label = label
     this.name = name
-    this.owner = owner
-    this.group = group
-    this.createdAt = createdAt
-    this.modifiedAt = modifiedAt
-    this.info = info
+    this.uuid = uuid
+    this.createDate = createDate
+    this.modifyDate = modifyDate
   }
 }
