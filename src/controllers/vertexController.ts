@@ -4,22 +4,18 @@ import { IncomingHttpHeaders } from 'http'
 import { fakePerson } from '../libs/faker'
 import converter from '../converter'
 import { v4 as uuidv4 } from 'uuid'
+import { he } from '@faker-js/faker'
 
 const request = async (res: Response, result: object | object[]) => {
   try {
     if (Array.isArray(result)) {
       const asObject = result.map((val: any) => Object.fromEntries(val))
       if (asObject.length === 1) {
-        console.log('asObject[0]', asObject[0])
-        return res.json(asObject[0])
+        res.json(asObject[0])
       } else {
-        console.log('asObject', asObject)
-        return res.json(asObject)
+        res.json(asObject)
       }
-    } else {
-      console.log('result', result)
-      return res.json(result)
-    }
+    } else res.json(result)
   } catch (error) {
     console.error('Error executing Gremlin query:', error)
     res.status(500).json({ error: 'Something went wrong.' })
@@ -56,67 +52,52 @@ export default class VertexController {
     }
   }
 
-  static getLinks = async (
-    res: Response,
-    id: string | string[] | undefined
-  ) => {
-    if (Number(id)) {
-      const vertex = await GremlinQueries.getVertexById(Number(id))
-      if (vertex.value) {
-        const response: any = await QueryCalss.getAllLinks(Number(id))
-        // console.log(response)
-        request(res, response)
+  static getSelection = async (res: Response, headers: IncomingHttpHeaders) => {
+    if (Number(headers.id)) {
+      if (await GremlinQueries.checkVertexExists(Number(headers.id))) {
+        const response: any = await QueryCalss.getVerticesBySelection()
+        res.json('ok')
       } else res.status(400).json({ error: "Vertex doesn't exist." })
     } else res.status(400).json({ error: 'Invalid id.' })
   }
 
-  static addVertex = async (
-    res: Response,
-    headers: IncomingHttpHeaders | { [key: string]: string }
-  ) => {
-    if (headers.label) {
-      const newVertex = {
-        label: String(headers.label),
-        name: String(headers.name),
+  static addVertex = async (res: Response, headers: IncomingHttpHeaders) => {
+    if (String(headers.label)) {
+      const keys = Object.keys(headers).filter(
+        (key) => !headerFilter.includes(key)
+      )
+      const newVertex = {}
+      keys.forEach((key) => Object.assign(newVertex, { [key]: headers[key] }))
+      Object.assign(newVertex, {
         uuid: uuidv4(),
-        owner: String(headers.name).toLocaleLowerCase(),
-        group: 'andy',
-        createDate: String(new Date().getTime()),
-        modifyDate: String(new Date().getTime()),
-      }
-      const result = await QueryCalss.addVertexByQuery(newVertex)
-      request(res, result)
-    } else res.status(400).json({ error: 'Invalid data.' })
+        createDate: new Date().getTime(),
+        modifyDate: new Date().getTime(),
+      })
+      request(res, await QueryCalss.addVertexByQuery(newVertex))
+    } else res.status(400).json({ error: 'Invalid label.' })
   }
 
   static updateVertex = async (res: Response, headers: IncomingHttpHeaders) => {
     if (Number(headers.id)) {
       if (await GremlinQueries.checkVertexExists(Number(headers.id))) {
-        const properties = Object.keys(headers).filter(
-          (key) => !headerFilter.includes(key)
+        const keys = Object.keys(headers).filter(
+          (key) =>
+            !headerFilter.includes(key) && !['createDate', 'uuid'].includes(key)
         )
-        const newProperties: { [key: string]: string } = {}
-        // for (const key of properties) {
-        //   newProperties[key] = String(headers[key])
-        // }
-        properties.forEach((key) => (newProperties[key] = String(headers[key])))
-        console.log(newProperties)
-        const query: string = `g.V(${Number(headers.id)}).elementMap().toList()`
-        console.log(await QueryCalss.gremlinQuery(query))
-        //     const person = new Person(
-        //       await VertexController.getVertex(Number(req.headers.id))
-        //     )
-        //     if (req.headers.name) person.name = String(req.headers.name)
-        //     if (req.headers.group) person.group = String(req.headers.group)
-        //     if (req.headers.info) person.info = String(req.headers.info)
-        //     request(res, () =>
-        //       VertexController.updateVertex(Number(req.headers.id), person)
-        // )
-        //   } else res.status(400).json({ error: "Vertex doesn't exist." })
-        // } else res.status(400).json({ error: 'Invalid id.' })
-      }
-    }
-    res.json('test')
+        const updatedVertex = {}
+        keys.forEach((key) =>
+          Object.assign(updatedVertex, { [key]: headers[key] })
+        )
+        Object.assign(updatedVertex, { modifyDate: new Date().getTime() })
+        request(
+          res,
+          await QueryCalss.updateVertexByQuery(
+            updatedVertex,
+            Number(headers.id)
+          )
+        )
+      } else res.status(400).json({ error: "Vertex doesn't exist." })
+    } else res.status(400).json({ error: 'Invalid id.' })
   }
 
   static deleteVertex = (vertexId?: number): any => {
@@ -133,8 +114,10 @@ export default class VertexController {
     id: string | string[] | undefined
   ) => {
     const fake = fakePerson()
-    if (Number(id))
-      request(res, await QueryCalss.addVertexByQuery(fake, Number(id)))
-    else request(res, await QueryCalss.addVertexByQuery(fake))
+    if (Number(id)) {
+      if (await GremlinQueries.checkVertexExists(Number(id)))
+        request(res, await QueryCalss.addVertexByQuery(fake, Number(id)))
+      else res.status(400).json({ error: "Vertex doesn't exist." })
+    } else request(res, await QueryCalss.addVertexByQuery(fake))
   }
 }

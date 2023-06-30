@@ -45,8 +45,8 @@ app
     } else request(res, () => VertexController.deleteVertex())
   })
 
-app.get('/vertex/links', async (req: Request, res: Response) => {
-  VertexController.getLinks(res, req.headers.id)
+app.get('/vertex/selection', async (req: Request, res: Response) => {
+  VertexController.getSelection(res, req.headers)
 })
 
 app
