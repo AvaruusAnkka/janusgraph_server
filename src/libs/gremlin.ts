@@ -36,7 +36,7 @@ export default class GremlinQueries {
   static deleteAllEdges = () => g.E().drop().next()
 }
 
-export class QueryCalss {
+export class QueryCalls {
   static #immutables = ['id', 'label']
 
   static #getAddQueries = (vertex: object) =>

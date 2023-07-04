@@ -1,4 +1,4 @@
-import GremlinQueries, { QueryCalss } from '../libs/gremlin'
+import GremlinQueries, { QueryCalls } from '../libs/gremlin'
 import { Response } from 'express'
 import { IncomingHttpHeaders } from 'http'
 import { fakePerson } from '../libs/faker'
@@ -55,7 +55,7 @@ export default class VertexController {
   static getSelection = async (res: Response, headers: IncomingHttpHeaders) => {
     if (Number(headers.id)) {
       if (await GremlinQueries.checkVertexExists(Number(headers.id))) {
-        const response: any = await QueryCalss.getVerticesBySelection()
+        const response: any = await QueryCalls.getVerticesBySelection()
         res.json('ok')
       } else res.status(400).json({ error: "Vertex doesn't exist." })
     } else res.status(400).json({ error: 'Invalid id.' })
@@ -73,8 +73,31 @@ export default class VertexController {
         createDate: new Date().getTime(),
         modifyDate: new Date().getTime(),
       })
-      request(res, await QueryCalss.addVertexByQuery(newVertex))
+      request(res, await QueryCalls.addVertexByQuery(newVertex))
     } else res.status(400).json({ error: 'Invalid label.' })
+  }
+
+  static selectVertex = async (res: Response, headers: IncomingHttpHeaders) => {
+    let query: string = ''
+    if (Number(headers.id)) {
+      query = `g.V(${Number(headers.id)}).elementMap().toList()`
+      if (String(headers.edge) === 'in') {
+        query = `g.V(${Number(headers.id)}).in('${String(
+          headers.edge
+        )}').elementMap().toList()`
+      } else if (String(headers.edge) === 'out') {
+        query = `g.V(${Number(headers.id)}).out('${String(
+          headers.edge
+        )}').elementMap().toList()`
+      } else if (String(headers.edge) === 'both') {
+        query = `g.V(${Number(headers.id)}).both('${String(
+          headers.edge
+        )}').elementMap().toList()`
+      }
+      const response = await QueryCalls.gremlinQuery(query)
+      console.log(response)
+      request(res, response)
+    } else res.status(400).json({ error: 'Invalid id.' })
   }
 
   static updateVertex = async (res: Response, headers: IncomingHttpHeaders) => {
@@ -91,7 +114,7 @@ export default class VertexController {
         Object.assign(updatedVertex, { modifyDate: new Date().getTime() })
         request(
           res,
-          await QueryCalss.updateVertexByQuery(
+          await QueryCalls.updateVertexByQuery(
             updatedVertex,
             Number(headers.id)
           )
@@ -106,7 +129,7 @@ export default class VertexController {
   }
 
   static deleteWithoutEdge = async (res: Response) => {
-    request(res, await QueryCalss.deleteAllVerticesWithNoEdges())
+    request(res, await QueryCalls.deleteAllVerticesWithNoEdges())
   }
 
   static createFake = async (
@@ -116,8 +139,8 @@ export default class VertexController {
     const fake = fakePerson()
     if (Number(id)) {
       if (await GremlinQueries.checkVertexExists(Number(id)))
-        request(res, await QueryCalss.addVertexByQuery(fake, Number(id)))
+        request(res, await QueryCalls.addVertexByQuery(fake, Number(id)))
       else res.status(400).json({ error: "Vertex doesn't exist." })
-    } else request(res, await QueryCalss.addVertexByQuery(fake))
+    } else request(res, await QueryCalls.addVertexByQuery(fake))
   }
 }

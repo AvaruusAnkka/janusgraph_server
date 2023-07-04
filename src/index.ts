@@ -25,19 +25,6 @@ app
   })
   .put(async (req: Request, res: Response) => {
     VertexController.updateVertex(res, req.headers)
-    // if (req.headers.id && Number(req.headers.id)) {
-    //   if (await VertexController.check(Number(req.headers.id))) {
-    //     const person = new Person(
-    //       await VertexController.getVertex(Number(req.headers.id))
-    //     )
-    //     if (req.headers.name) person.name = String(req.headers.name)
-    //     if (req.headers.group) person.group = String(req.headers.group)
-    //     if (req.headers.info) person.info = String(req.headers.info)
-    //     request(res, () =>
-    //       VertexController.updateVertex(Number(req.headers.id), person)
-    //     )
-    //   } else res.status(400).json({ error: "Vertex doesn't exist." })
-    // } else res.status(400).json({ error: 'Invalid id.' })
   })
   .delete(async (req: Request, res: Response) => {
     if (req.headers.id && Number(req.headers.id)) {
@@ -45,8 +32,8 @@ app
     } else request(res, () => VertexController.deleteVertex())
   })
 
-app.get('/vertex/selection', async (req: Request, res: Response) => {
-  VertexController.getSelection(res, req.headers)
+app.route('/vertex/select').get(async (req: Request, res: Response) => {
+  VertexController.selectVertex(res, req.headers)
 })
 
 app
@@ -91,7 +78,11 @@ app
   })
 
 app.post('/faker', (req: Request, res: Response) => {
+<<<<<<< Updated upstream
   VertexController.createFake(res, req.headers.id)
+=======
+  VertexController.createFake(res)
+>>>>>>> Stashed changes
 })
 
 app.delete('/withoutEdge', (req: Request, res: Response) => {
