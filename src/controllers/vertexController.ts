@@ -48,9 +48,20 @@ export default class VertexController {
       converter(response)
       request(res, response)
     } else {
-      request(res, await GremlinQueries.getAllVertices())
+      request(res, await GremlinQueries.getVertices())
     }
   }
+
+  static getGraphData = async (res: Response) =>
+    Promise.all([GremlinQueries.getVertices(), GremlinQueries.getLinks()])
+      .then((values) => {
+        const nodes = values[0].map((val: any) => Object.fromEntries(val))
+        const links = values[1]._items.map((val: any) =>
+          Object.fromEntries(val)
+        )
+        request(res, { nodes: nodes, links: links })
+      })
+      .catch((error) => console.error(error))
 
   static addVertex = async (
     res: Response,

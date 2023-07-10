@@ -19,7 +19,12 @@ export default class GremlinQueries {
 
   static getVertexById = (id: number) => g.V(id).elementMap().next()
 
-  static getAllVertices = () => g.V().elementMap().toList()
+  static getVertices = () => g.V().elementMap().toList()
+
+  static getLinks = () => {
+    const query = `g.E().project('source', 'target').by(outV().id()).by(inV().id()).toList()`
+    return client.submit(query)
+  }
 
   static addVertexByQuery = (vertex: { [key: string]: string | Date }) => {
     const keys = Object.keys(vertex).filter((key) => key !== 'label')

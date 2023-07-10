@@ -1,8 +1,11 @@
 import express, { Express, Request, Response } from 'express'
 import VertexController from './controllers/vertexController'
+import cors from 'cors'
 
 const app: Express = express()
 const port = 3000
+
+app.use(cors())
 
 const request = async (res: Response, query: Function) => {
   try {
@@ -17,7 +20,8 @@ const request = async (res: Response, query: Function) => {
 app
   .route('/vertex')
   .get(async (req: Request, res: Response) => {
-    VertexController.getVertex(res, req.headers.id, req.headers.label)
+    // VertexController.getVertex(res, req.headers.id, req.headers.label)
+    VertexController.getGraphData(res)
   })
   .post((req: Request, res: Response) => {
     VertexController.addVertex(res, req.headers)
