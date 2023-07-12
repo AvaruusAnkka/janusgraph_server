@@ -1,19 +1,24 @@
-import express, { Express, Request, Response } from 'express'
+import EdgeController from './controllers/edgeController'
 import VertexController from './controllers/vertexController'
+import express, { Express, Request, Response } from 'express'
 
 const app: Express = express()
 const port = 3000
 
-// const request = async (res: Response, query: Function) => {
-//   try {
-//     const result = await query()
-//     res.json(result)
-//   } catch (error) {
-//     console.error('Error executing Gremlin query:', error)
-//     res.status(500).json({ error: 'Something went wrong.' })
-//   }
-// }
+const request = async (res: Response, result: object[] | object) => {
+  try {
+    if (Array.isArray(result)) {
+      const asObject = result.map((val: any) => Object.fromEntries(val))
+      if (asObject.length === 1) res.json(asObject[0])
+      else res.json(asObject)
+    } else res.json(result)
+  } catch (error) {
+    console.error('Error executing Gremlin query:', error)
+    res.status(500).json({ error: 'Something went wrong.' })
+  }
+}
 
+export default request
 app
   .route('/vertex')
   .get(async (req: Request, res: Response) => {
@@ -32,44 +37,15 @@ app
 app
   .route('/edge')
   .get(async (req: Request, res: Response) => {
-    VertexController.getEdge(res, req.headers.id)
+    EdgeController.getEdge(res, req.headers.id)
   })
   .post(async (req: Request, res: Response) => {
-    VertexController.addEdge(res, req.headers.from, req.headers.to)
+    EdgeController.addEdge(res, req.headers.from, req.headers.to)
   })
-
-// app
-//   .route('/edge')
-//   .get(async (req: Request, res: Response) => {
-//     if (req.headers.id && Number(req.headers.id)) {
-//       const vertex = await VertexController.getEdge(Number(req.headers.id))
-//       if (vertex)
-//         request(res, () => VertexController.getEdge(Number(req.headers.id)))
-//       else res.status(400).json({ error: 'Invalid id.' })
-//     } else {
-//       const response: any = await VertexController.getEdge()
-//       try {
-//         const asObject = response.map((val: any) => Object.fromEntries(val))
-//         request(res, () => asObject)
-//       } catch (error) {
-//         request(res, () => response)
-//       }
-//     }
-//   })
-//   .post(async (req: Request, res: Response) => {})
-//   .delete(async (req: Request, res: Response) => {
-//     if (req.headers.id && Number(req.headers.id)) {
-//       request(res, () => VertexController.deleteEdge(Number(req.headers.id)))
-//     } else request(res, () => VertexController.deleteEdge())
-//   })
 
 app.post('/faker', (req: Request, res: Response) => {
   VertexController.createFake(res, req.headers.id)
 })
-
-// app.delete('/withoutEdge', (req: Request, res: Response) => {
-//   VertexController.deleteWithoutEdge(res)
-// })
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`)
