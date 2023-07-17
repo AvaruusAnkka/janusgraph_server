@@ -10,59 +10,66 @@ const connection = new DriverRemoteConnection(
 const g = traversal().withRemote(connection)
 const client = new gremlin.driver.Client('ws://server.nome.fi:8182/gremlin')
 
-class GremlinQueries {
-  gremlinQuery = (query: string) => client.submit(`g.${query}`)
-
-  checkVertexExists = (vertexId: number) => g.V(vertexId).hasNext()
-
-  getVertexByLabel = (label: string) =>
-    g.V().hasLabel(label).elementMap().toList()
-
-  getVertexById = (id: number) => g.V(id).elementMap().next()
-
-  getVertices = () => g.V().elementMap().toList()
-
-  addVertexByQuery = (
-    vertex: { [key: string]: string | Date },
-    id?: number
-  ) => {
-    const keys = Object.keys(vertex).filter((key) => key !== 'label')
-    const addQuery: string = keys
-      .map((key) => {
-        let keyValue: string | number
-        if (vertex[key] instanceof Date)
-          keyValue = (vertex as { [key: string]: Date })[key].getTime()
-        else keyValue = (vertex as { [key: string]: string })[key]
-        return `.property('${key}', '${keyValue}')`
-      })
-      .join('')
-
-    let target = `V().has('name', 'Andy')`
-    if (id) target = `V(${id})`
-    const query = `addV('${vertex.label}')${addQuery}.addE('knows').from(${target}).next()`
-    console.log(query)
-
-    return this.gremlinQuery(query)
+class VertexQueries {
+  #createAddQuery = (vertex: object) => {
+    const entries = Object.entries(vertex)
+    const addQuery = entries.reduce((acc, [key, value]) => {
+      if (typeof value === 'string')
+        return `${acc}.property('${key}','${value}')`
+      else if (typeof value === 'number')
+        return `${acc}.property('${key}',${value})`
+      else if (value instanceof Date)
+        return `${acc}.property('${key}',new Date('${value}'))`
+      else return acc
+    }, '')
+    return addQuery
   }
 
-  deleteVertexById = (vertexId: number) => g.V(vertexId).drop().next()
+  call = (query: string) => client.submit(`g.${query}`)
 
-  getEdges = () => {
+  checkVertex = (vertexId: number) => g.V(vertexId).hasNext()
+
+  get = (id: number) => g.V(id).elementMap().next()
+
+  getAll = () => g.V().elementMap().toList()
+
+  add = (vertex: object) => {
+    const addQuery = this.#createAddQuery(vertex)
+    const query = `addV('person')${addQuery}.elementMap().next()`
+    return query
+  }
+
+  update = (id: number, vertex: object) => {
+    const addQuery = this.#createAddQuery(vertex)
+    const query = `V(${id})${addQuery}.elementMap().next()`
+    return this.call(query)
+  }
+
+  delete = (vertexId: number) => g.V(vertexId).drop().next()
+}
+
+class EdgeQueries {
+  call = (query: string) => client.submit(`g.${query}`)
+
+  get = (id: number) => g.E(id).elementMap().next()
+
+  getLinks = () => {
     const query = `E().project('id','source', 'target').by(id()).by(outV().id()).by(inV().id()).toList()`
-    return this.gremlinQuery(query)
+    return this.call(query)
   }
 
-  getEdgeById = (id: number) => {
-    const query = `g.E(${id}).project('id','source', 'target').by(id()).by(outV().id()).by(inV().id()).toList()`
-    return client.submit(query)
+  add = (source: number, target: number) => {
+    // g.addE('knows').from_(source).to(target).next()
+    const query = `addE('knows').from_(V(${source})).to(V(${target}))`
+    return query
   }
 
-  addEdge = (source: number, target: number) => {
-    const query = `V(${source}).addE('knows').to(g.V(${target})).next()`
-    return this.gremlinQuery(query)
-  }
+  delete = (id: number) => g.E(id).drop().next()
+}
 
-  deleteEdgeById = (id: number) => g.E(id).drop().next()
+class GremlinQueries {
+  edge = new EdgeQueries()
+  vertex = new VertexQueries()
 }
 
 export default new GremlinQueries()

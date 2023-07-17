@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 
-export const fakePerson = () => {
+const fakePerson = () => {
   const name = faker.person.firstName()
 
   return {
@@ -14,3 +14,5 @@ export const fakePerson = () => {
     info: faker.person.jobDescriptor(),
   }
 }
+
+export default fakePerson

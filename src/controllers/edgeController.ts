@@ -3,25 +3,31 @@ import request from '../index'
 import { Response } from 'express'
 
 class EdgeController {
-  getEdge = async (res: Response, vertexId?: string | string[] | undefined) => {
-    if (Number(vertexId))
-      request(res, await GremlinQueries.getEdgeById(Number(vertexId)))
-    else request(res, await GremlinQueries.getEdges())
+  #edge = GremlinQueries.edge
+
+  get = async (res: Response, vertexId?: string | string[] | undefined) => {
+    if (Number(vertexId)) request(res, await this.#edge.get(Number(vertexId)))
+    else res.status(400).json({ error: 'Invalid data.' })
   }
 
-  addEdge = (
+  getLinks = async () => {
+    const links: any = await this.#edge.getLinks()
+    return links._items.map((val: any) => Object.fromEntries(val))
+  }
+
+  add = async (
     res: Response,
     from?: string | string[] | undefined,
     to?: string | string[] | undefined
   ) => {
-    if (Number(from) && Number(to))
-      request(res, GremlinQueries.addEdge(Number(from), Number(to)))
-    else res.status(400).json({ error: 'Invalid data.' })
+    if (Number(from) && Number(to)) {
+      const query = this.#edge.add(Number(from), Number(to))
+      return query
+    } else res.status(400).json({ error: 'Invalid data.' })
   }
 
-  deleteEdge = (res: Response, vertexId?: string | string[] | undefined) => {
-    if (Number(vertexId))
-      request(res, GremlinQueries.deleteEdgeById(Number(vertexId)))
+  delete = (res: Response, vertexId?: string | string[] | undefined) => {
+    if (Number(vertexId)) request(res, this.#edge.delete(Number(vertexId)))
     else res.status(400).json({ error: 'Invalid data.' })
   }
 }
