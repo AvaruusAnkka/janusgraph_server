@@ -11,7 +11,7 @@ const g = traversal().withRemote(connection)
 const client = new gremlin.driver.Client('ws://server.nome.fi:8182/gremlin')
 
 class VertexQueries {
-  #createAddQuery = (vertex: object) => {
+  #createAddQuery = (vertex: { [key: string]: any }) => {
     const entries = Object.entries(vertex)
     const addQuery = entries.reduce((acc, [key, value]) => {
       if (typeof value === 'string')
@@ -19,7 +19,7 @@ class VertexQueries {
       else if (typeof value === 'number')
         return `${acc}.property('${key}',${value})`
       else if (value instanceof Date)
-        return `${acc}.property('${key}',new Date('${value}'))`
+        return `${acc}.property('${key}',${value.getTime()})`
       else return acc
     }, '')
     return addQuery
@@ -33,13 +33,13 @@ class VertexQueries {
 
   getAll = () => g.V().elementMap().toList()
 
-  add = (vertex: object) => {
+  add = (label: string, vertex: { [key: string]: any }) => {
     const addQuery = this.#createAddQuery(vertex)
-    const query = `addV('person')${addQuery}.elementMap().next()`
+    const query = `addV(${label})${addQuery}.elementMap().next()`
     return query
   }
 
-  update = (id: number, vertex: object) => {
+  update = (id: number, vertex: { [key: string]: any }) => {
     const addQuery = this.#createAddQuery(vertex)
     const query = `V(${id})${addQuery}.elementMap().next()`
     return this.call(query)
@@ -58,9 +58,9 @@ class EdgeQueries {
     return this.call(query)
   }
 
-  add = (source: number, target: number) => {
-    // g.addE('knows').from_(source).to(target).next()
-    const query = `addE('knows').from_(V(${source})).to(V(${target}))`
+  add = (source: number, target: number, label: string = 'superior') => {
+    let query = `.addE(${label}).to(V(${target}))`
+    if (source) query = `.addE(${label}).from_(V(${source})).to(V(${target}))`
     return query
   }
 

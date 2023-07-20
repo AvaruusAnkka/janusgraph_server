@@ -17,8 +17,8 @@ class EdgeController {
 
   add = async (
     res: Response,
-    from?: string | string[] | undefined,
-    to?: string | string[] | undefined
+    from: string | string[] | undefined,
+    to: string | string[] | undefined
   ) => {
     if (Number(from) && Number(to)) {
       const query = this.#edge.add(Number(from), Number(to))

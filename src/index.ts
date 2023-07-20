@@ -25,7 +25,7 @@ const edge = EdgeController
 app
   .route('/vertex')
   .get(async (req: Request, res: Response) => {
-    vertex.get(res, req.headers.id)
+    vertex.getOne(res, req.headers.id)
   })
   .post((req: Request, res: Response) => {
     vertex.add(res, JSON.stringify(req.headers))
@@ -47,7 +47,7 @@ app
   })
 
 app.get('/graph', (req: Request, res: Response) => {
-  Promise.all([vertex.getNodes(), edge.getLinks()]).then((values) =>
+  Promise.all([vertex.getAll(), edge.getLinks()]).then((values) =>
     request(res, { nodes: values[0], links: values[1] })
   )
 })
