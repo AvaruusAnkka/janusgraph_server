@@ -7,6 +7,7 @@ const app: Express = express()
 const port = 3000
 
 app.use(cors())
+app.use(express.urlencoded())
 
 const request = (res: Response, result: object[] | object) => {
   try {
@@ -27,16 +28,17 @@ const edge = EdgeController
 app
   .route('/vertex')
   .get((req: Request, res: Response) => {
-    vertex.getOne(res, req.headers.id)
+    vertex.getOne(res, req.body.id)
   })
   .post((req: Request, res: Response) => {
-    vertex.add(res, JSON.stringify(req.headers))
+    console.log(req.body)
+    vertex.add(res, req.body)
   })
   .put((req: Request, res: Response) => {
-    vertex.update(res, JSON.stringify(req.headers))
+    vertex.update(res, req.body)
   })
   .delete((req: Request, res: Response) => {
-    vertex.delete(res, req.headers.id)
+    vertex.delete(res, req.body.id)
   })
 
 app.get('/vertices', async (req: Request, res: Response) => {
@@ -51,23 +53,14 @@ app.get('/vertices', async (req: Request, res: Response) => {
 app
   .route('/edge')
   .get((req: Request, res: Response) => {
-    edge.getOne(res, req.headers.id)
+    edge.getOne(res, req.body.id)
   })
   .post(async (req: Request, res: Response) => {
-    edge.add(res, req.headers.from, req.headers.to)
+    edge.add(res, req.body.from, req.body.to)
   })
   .delete((req: Request, res: Response) => {
-    edge.delete(res, req.headers.id)
+    edge.delete(res, req.body.id)
   })
-
-app.get('/edges', async (req: Request, res: Response) => {
-  try {
-    res.json(await edge.getLinks())
-  } catch (error) {
-    console.error('Error executing Gremlin query:', error)
-    res.status(500).json({ error: 'Something went wrong.' })
-  }
-})
 
 app.get('/graph', (req: Request, res: Response) => {
   Promise.all([vertex.getAll(), edge.getLinks()])
@@ -76,6 +69,10 @@ app.get('/graph', (req: Request, res: Response) => {
       console.error('Error executing Gremlin query:', error)
       res.status(500).json({ error: 'Something went wrong.' })
     })
+})
+
+app.delete('/drop', async (res: Response) => {
+  request(res, await vertex.drop())
 })
 
 app.listen(port, () => {

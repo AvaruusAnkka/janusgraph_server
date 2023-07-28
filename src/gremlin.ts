@@ -11,13 +11,15 @@ const g = traversal().withRemote(connection)
 const client = new gremlin.driver.Client('ws://server.nome.fi:8182/gremlin')
 
 class VertexQueries {
-  #createAddQuery = (vertex: { [key: string]: any }) => {
+  #ignoredKeys = new RegExp(/^(id|label)$/, 'i')
+
+  #createAddQuery = (vertex: { [key: string]: string | number }) => {
     const entries = Object.entries(vertex)
     const addQuery = entries.map(([key, value]) => {
-      if (typeof value === 'string') return `.property('${key}','${value}')`
+      if (this.#ignoredKeys.test(key)) return ''
+      else if (typeof value === 'string')
+        return `.property('${key}','${value}')`
       else if (typeof value === 'number') return `.property('${key}',${value})`
-      else if (value instanceof Date)
-        return `.property('${key}',${value.getTime()})`
     })
     return addQuery.join('')
   }
@@ -28,19 +30,23 @@ class VertexQueries {
 
   getAll = () => g.V().elementMap().toList()
 
-  add = (label: string, vertex: { [key: string]: any }) => {
+  add = (vertex: { [key: string]: string | number }) => {
     const addQuery = this.#createAddQuery(vertex)
-    const query = `addV('${label}')${addQuery}.next()`
+    const query = `addV('${vertex.label}')${addQuery}.next()`
     return client.submit(`g.${query}`)
   }
 
-  update = (id: number, vertex: { [key: string]: any }) => {
+  update = (vertex: { [key: string]: string | number }) => {
     const addQuery = this.#createAddQuery(vertex)
-    const query = `V(${id})${addQuery}.next()`
+    const query = `V(${vertex.id})${addQuery}.next()`
     return client.submit(`g.${query}`)
   }
 
   delete = (vertexId: number) => g.V(vertexId).drop().next()
+
+  drop = () => g.V().drop().next()
+
+  clean = () => client.submit( `g.V().not(bothE()).drop().next()` )
 }
 
 class EdgeQueries {
