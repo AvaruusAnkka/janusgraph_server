@@ -2,19 +2,9 @@ import GremlinQueries from '../gremlin'
 import request from '../index'
 import { Response } from 'express'
 
-const headerFilter = [
-  'accept',
-  'accept-encoding',
-  'cache-control',
-  'connection',
-  'content-length',
-  'host',
-  'postman-token',
-  'user-agent',
-]
-
 class VertexController {
   #vertex = GremlinQueries.vertex
+  #ignore = new RegExp(/^(id|createdAt|updatedAt)$/, 'i')
 
   getOne = async (res: Response, id: string | string[] | undefined) => {
     if (Number(id)) {
@@ -29,41 +19,31 @@ class VertexController {
     return vertices.map((vertex: any) => Object.fromEntries(vertex))
   }
 
-  add = async (res: Response, headers: string) => {
-    const headerObject = JSON.parse(headers)
-
-    if (headers.includes('label')) {
-      const label = headerObject.label
-      const vertex: { [key: string]: any } = {}
-      Object.entries(headerObject).forEach(([key, value]) => {
-        if (!headerFilter.includes(key) && !key.includes('label'))
-          vertex[key] = value
-      })
-      vertex.createdAt = new Date()
-      vertex.updatedAt = new Date()
-      request(res, await this.#vertex.add(label, vertex))
+  add = async (res: Response, body: object) => {
+    if (body) {
+      const now = new Date().getTime()
+      const vertex: { [key: string]: string | number } = {
+        label: 'vertex',
+        createdAt: now,
+        updatedAt: now,
+      }
+      for (const [key, value] of Object.entries(body)) {
+        if (!this.#ignore.test(key)) vertex[key] = value
+      }
+      request(res, await this.#vertex.add(vertex))
     } else res.status(400).json({ error: 'Invalid data.' })
   }
 
-  update = async (res: Response, headers: string) => {
-    const headerObject = JSON.parse(headers)
-
-    if (headers.includes('id')) {
-      const id = headerObject.id
-      const uuid = headerObject.uuid
-      const vertex: { [key: string]: any } = {}
-      Object.entries(headerObject).forEach(([key, value]) => {
-        if (
-          !headerFilter.includes(key) &&
-          !key.includes('id') &&
-          !key.includes('label') &&
-          !key.toLowerCase().includes('createdAt'.toLowerCase())
-        )
-          vertex[key] = value
-      })
-      if (uuid) vertex.uuid = uuid
-      vertex.updatedAt = new Date()
-      request(res, await this.#vertex.update(id, vertex))
+  update = async (res: Response, body: { [key: string]: string }) => {
+    if (body.id) {
+      const vertex: { [key: string]: string | number } = {
+        id: body.id,
+        updateAt: new Date().getTime(),
+      }
+      for (const [key, value] of Object.entries(body)) {
+        if (!this.#ignore.test(key)) vertex[key] = value
+      }
+      request(res, await this.#vertex.update(vertex))
     } else res.status(400).json({ error: 'Invalid data.' })
   }
 
@@ -74,6 +54,8 @@ class VertexController {
       } else res.status(400).json({ error: "Vertex doesn't exist." })
     }
   }
+
+  drop = async () => await this.#vertex.drop()
 }
 
 export default new VertexController()
