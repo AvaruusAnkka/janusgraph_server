@@ -56,6 +56,8 @@ class VertexController {
   }
 
   drop = async () => await this.#vertex.drop()
+
+  clean = async () => await this.#vertex.clean()
 }
 
 export default new VertexController()
