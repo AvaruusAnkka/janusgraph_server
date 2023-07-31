@@ -2,12 +2,13 @@ import EdgeController from './controllers/edgeController'
 import VertexController from './controllers/vertexController'
 import express, { Express, Request, Response } from 'express'
 import cors from 'cors'
+import 'dotenv/config'
 
 const app: Express = express()
-const port = 3000
+const port = process.env.PORT
 
 app.use(cors())
-app.use(express.urlencoded())
+app.use(express.urlencoded({ extended: true }))
 
 const request = (res: Response, result: object[] | object) => {
   try {
@@ -71,7 +72,11 @@ app.get('/graph', (req: Request, res: Response) => {
     })
 })
 
-app.delete('/drop', async (res: Response) => {
+app.delete('/clean', async (req: Request, res: Response) => {
+  request(res, await vertex.clean())
+})
+
+app.delete('/drop', async (req: Request, res: Response) => {
   request(res, await vertex.drop())
 })
 

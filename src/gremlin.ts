@@ -1,14 +1,15 @@
 import gremlin from 'gremlin'
+import 'dotenv/config'
 
 const traversal = gremlin.process.AnonymousTraversalSource.traversal
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 
-const connection = new DriverRemoteConnection(
-  'ws://server.nome.fi:8182/gremlin'
-)
+const url = process.env.SERVER_URL ? String(process.env.SERVER_URL) : ''
+
+const connection = new DriverRemoteConnection(url)
 
 const g = traversal().withRemote(connection)
-const client = new gremlin.driver.Client('ws://server.nome.fi:8182/gremlin')
+const client = new gremlin.driver.Client(url)
 
 class VertexQueries {
   #ignoredKeys = new RegExp(/^(id|label)$/, 'i')
@@ -46,7 +47,7 @@ class VertexQueries {
 
   drop = () => g.V().drop().next()
 
-  clean = () => client.submit( `g.V().not(bothE()).drop().next()` )
+  clean = () => client.submit(`g.V().not(bothE()).drop().next()`)
 }
 
 class EdgeQueries {
