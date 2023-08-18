@@ -14,11 +14,6 @@ class VertexController {
     } else res.status(400).json({ error: 'Invalid data.' })
   }
 
-  getAll = async () => {
-    const vertices: any = await this.#vertex.getAll()
-    return vertices.map((vertex: any) => Object.fromEntries(vertex))
-  }
-
   add = async (res: Response, body: object) => {
     if (body) {
       const now = new Date().getTime()

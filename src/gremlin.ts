@@ -29,8 +29,6 @@ class VertexQueries {
 
   get = (id: number) => g.V(id).elementMap().next()
 
-  getAll = () => g.V().elementMap().toList()
-
   add = (vertex: { [key: string]: string | number }) => {
     const addQuery = this.#createAddQuery(vertex)
     const query = `addV('${vertex.label}')${addQuery}.next()`
@@ -54,13 +52,6 @@ class EdgeQueries {
   check = (edgeId: string) => g.E(edgeId).hasNext()
 
   get = (id: string) => g.E(id).next()
-
-  getAll = () => g.E().elementMap().toList()
-
-  getLinks = () => {
-    const query = `E().project('id','source', 'target').by(id()).by(outV().id()).by(inV().id()).toList()`
-    return client.submit(`g.${query}`)
-  }
 
   add = (source: number, target: number, label: string = 'superior') =>
     client.submit(

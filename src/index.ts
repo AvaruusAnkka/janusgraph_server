@@ -42,15 +42,6 @@ app
     vertex.delete(res, req.body.id)
   })
 
-app.get('/vertices', async (req: Request, res: Response) => {
-  try {
-    res.json(await vertex.getAll())
-  } catch (error) {
-    console.error('Error executing Gremlin query:', error)
-    res.status(500).json({ error: 'Something went wrong.' })
-  }
-})
-
 app
   .route('/edge')
   .get((req: Request, res: Response) => {
@@ -62,15 +53,6 @@ app
   .delete((req: Request, res: Response) => {
     edge.delete(res, req.body.id)
   })
-
-app.get('/graph', (req: Request, res: Response) => {
-  Promise.all([vertex.getAll(), edge.getLinks()])
-    .then((values) => res.json({ nodes: values[0], links: values[1] }))
-    .catch((error) => {
-      console.error('Error executing Gremlin query:', error)
-      res.status(500).json({ error: 'Something went wrong.' })
-    })
-})
 
 app.delete('/clean', async (req: Request, res: Response) => {
   request(res, await vertex.clean())

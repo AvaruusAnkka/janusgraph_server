@@ -14,17 +14,6 @@ class EdgeController {
     } else res.status(400).json({ error: 'Invalid data.' })
   }
 
-  // getAll = async () => {
-  //   const edges: any = await this.#edge.getAll()
-  //   const response = edges.map((val: any) => Object.fromEntries(val))
-  //   return response
-  // }
-
-  getLinks = async () => {
-    const links: any = await this.#edge.getLinks()
-    return links._items.map((val: any) => Object.fromEntries(val))
-  }
-
   add = async (
     res: Response,
     from: string | string[] | undefined,
