@@ -4,7 +4,7 @@ import 'dotenv/config'
 const traversal = gremlin.process.AnonymousTraversalSource.traversal
 const DriverRemoteConnection = gremlin.driver.DriverRemoteConnection
 
-const url = process.env.SERVER_URL ? String(process.env.SERVER_URL) : ''
+const url = process.env.GREMLIN_URL ? String(process.env.GREMLIN_URL) : 'ws://localhost:8182/gremlin'
 
 const connection = new DriverRemoteConnection(url)
 

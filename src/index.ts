@@ -5,23 +5,15 @@ import cors from 'cors'
 import 'dotenv/config'
 
 const app: Express = express()
-const port = process.env.PORT
+const port = process.env.PORT || 3000
 
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 
-const request = (res: Response, result: object[] | object) => {
-  try {
-    if (Array.isArray(result)) {
-      const asObject = result.map((val: any) => Object.fromEntries(val))
-      if (asObject.length === 1) res.json(asObject[0])
-      else res.json(asObject)
-    } else res.json(result)
-  } catch (error) {
-    console.error('Error executing Gremlin query:', error)
-    res.status(500).json({ error: 'Something went wrong.' })
-  }
-}
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()}, ${req.method}, ${req.url}`)
+  next()
+})
 
 const vertex = VertexController
 const edge = EdgeController
@@ -29,7 +21,9 @@ const edge = EdgeController
 app
   .route('/vertex')
   .get((req: Request, res: Response) => {
-    vertex.getOne(res, req.body.id)
+    try {
+      vertex.getOne(res, req.body.id)
+    }
   })
   .post((req: Request, res: Response) => {
     console.log(req.body)
